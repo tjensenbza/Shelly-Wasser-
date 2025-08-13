@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Glaszuschnitt Optimierung</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    input { margin: 0.2em; }
+    .zuschnitt-item { margin-bottom: 0.5em; }
+    .zuschnitt-liste { margin-top: 1em; }
+    #output { margin-top: 2em; white-space: pre; background: #f0f0f0; padding: 1em; }
+    canvas { border: 1px solid #999; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>Glaszuschnitt Optimierung</h1>
+
+  <h2>Basismaterial</h2>
+  <label>Breite (mm): <input type="number" id="baseWidth"></label>
+  <label>Höhe (mm): <input type="number" id="baseHeight"></label>
+
+  <h2>Randschnitt (Abstand in mm)</h2>
+  <label>Links: <input type="number" id="marginLeft" value="10"></label>
+  <label>Rechts: <input type="number" id="marginRight" value="10"></label>
+  <label>Oben: <input type="number" id="marginTop" value="10"></label>
+  <label>Unten: <input type="number" id="marginBottom" value="10"></label>
+
+  <h2>Zuschnitte</h2>
+  <div id="zuschnittContainer" class="zuschnitt-liste"></div>
+  <button onclick="addZuschnitt()">➕ Zuschnitt hinzufügen</button>
+
+  <div>
+    <button onclick="optimieren()">🔍 Optimieren</button>
+  </div>
+
+  <div id="output"></div>
+  <canvas id="canvas" width="800" height="600"></canvas>
+
+  <script>
+    let zuschnittIndex = 0;
+
+    function addZuschnitt() {
+      const container = document.getElementById("zuschnittContainer");
+      const div = document.createElement("div");
+      div.className = "zuschnitt-item";
+      div.innerHTML = `
+        <label>Breite: <input type="number" class="cutWidth"></label>
+        <label>Höhe: <input type="number" class="cutHeight"></label>
+        <label>Anzahl: <input type="number" class="cutCount" value="1"></label>
+      `;
+      container.appendChild(div);
+    }
+
+    function optimieren() {
+      const baseWidth = parseInt(document.getElementById("baseWidth").value);
+      const baseHeight = parseInt(document.getElementById("baseHeight").value);
+      const marginLeft = parseInt(document.getElementById("marginLeft").value);
+      const marginRight = parseInt(document.getElementById("marginRight").value);
+      const marginTop = parseInt(document.getElementById("marginTop").value);
+      const marginBottom = parseInt(document.getElementById("marginBottom").value);
+
+      const usableWidth = baseWidth - marginLeft - marginRight;
+      const usableHeight = baseHeight - marginTop - marginBottom;
+
+      const widths = document.querySelectorAll(".cutWidth");
+      const heights = document.querySelectorAll(".cutHeight");
+      const counts = document.querySelectorAll(".cutCount");
+
+      const cuts = [];
+
+      for (let i = 0; i < widths.length; i++) {
+        const w = parseInt(widths[i].value);
+        const h = parseInt(heights[i].value);
+        const c = parseInt(counts[i].value);
+        for (let j = 0; j < c; j++) {
+          cuts.push({ w, h });
+        }
+      }
+
+      let output = `Platte nutzbar: ${usableWidth}mm × ${usableHeight}mm\n`;
+      output += `Zu platzierende Zuschnitte: ${cuts.length}\n\n`;
+
+      let x = 0, y = 0, rowHeight = 0, placed = 0;
+      const placements = [];
+
+      for (let i = 0; i < cuts.length; i++) {
+        const cut = cuts[i];
+        if (x + cut.w > usableWidth) {
+          x = 0;
+          y += rowHeight;
+          rowHeight = 0;
+        }
+        if (y + cut.h > usableHeight) {
+          break; // kein Platz mehr
+        }
+        output += `Zuschnitt ${i + 1}: ${cut.w}×${cut.h} → Position (${x + marginLeft}, ${y + marginTop})\n`;
+        placements.push({ x: x + marginLeft, y: y + marginTop, w: cut.w, h: cut.h });
+        x += cut.w;
+        rowHeight = Math.max(rowHeight, cut.h);
+        placed++;
+      }
+
+      output += `\nPlatzierte Zuschnitte: ${placed} von ${cuts.length}`;
+      document.getElementById("output").textContent = output;
+
+      drawCanvas(baseWidth, baseHeight, marginLeft, marginTop, placements);
+    }
+
+    function drawCanvas(baseWidth, baseHeight, marginLeft, marginTop, placements) {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const scale = Math.min(canvas.width / baseWidth, canvas.height / baseHeight);
+      ctx.strokeStyle = "black";
+      ctx.strokeRect(0, 0, baseWidth * scale, baseHeight * scale);
+
+      ctx.fillStyle = "rgba(0, 150, 255, 0.5)";
+      placements.forEach((cut, i) => {
+        ctx.fillRect(cut.x * scale, cut.y * scale, cut.w * scale, cut.h * scale);
+        ctx.strokeRect(cut.x * scale, cut.y * scale, cut.w * scale, cut.h * scale);
+        ctx.fillStyle = "black";
+        ctx.font = "10px sans-serif";
+        ctx.fillText(`${i + 1}`, cut.x * scale + 2, cut.y * scale + 12);
+        ctx.fillStyle = "rgba(0, 150, 255, 0.5)";
+      });
+    }
+
+    addZuschnitt();
+  </script>
+</body>
+</html>
