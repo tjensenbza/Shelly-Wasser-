@@ -16,8 +16,8 @@
   <h1>Glaszuschnitt Optimierung</h1>
 
   <h2>Basismaterial</h2>
-  <label>Breite (mm): <input type="number" id="baseWidth"></label>
-  <label>Höhe (mm): <input type="number" id="baseHeight"></label>
+  <label>Breite (mm): <input type="number" id="baseWidth" value="1000"></label>
+  <label>Höhe (mm): <input type="number" id="baseHeight" value="2000"></label>
 
   <h2>Randschnitt (Abstand in mm)</h2>
   <label>Links: <input type="number" id="marginLeft" value="10"></label>
@@ -42,8 +42,8 @@
       const div = document.createElement("div");
       div.className = "zuschnitt-item";
       div.innerHTML = `
-        <label>Breite: <input type="number" class="cutWidth"></label>
-        <label>Höhe: <input type="number" class="cutHeight"></label>
+        <label>Breite: <input type="number" class="cutWidth" value="100"></label>
+        <label>Höhe: <input type="number" class="cutHeight" value="200"></label>
         <label>Anzahl: <input type="number" class="cutCount" value="1"></label>
       `;
       container.appendChild(div);
@@ -70,8 +70,10 @@
         const w = parseInt(widths[i].value);
         const h = parseInt(heights[i].value);
         const c = parseInt(counts[i].value);
-        for (let j = 0; j < c; j++) {
-          cuts.push({ w, h });
+        if (!isNaN(w) && !isNaN(h) && !isNaN(c) && w > 0 && h > 0 && c > 0) {
+          for (let j = 0; j < c; j++) {
+            cuts.push({ w, h });
+          }
         }
       }
 
@@ -126,7 +128,7 @@
 
     window.onload = () => {
       addZuschnitt();
-    }
+    };
   </script>
 </body>
 </html>
