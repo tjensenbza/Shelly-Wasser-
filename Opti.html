@@ -27,18 +27,16 @@
 
   <h2>Zuschnitte</h2>
   <div id="zuschnittContainer" class="zuschnitt-liste"></div>
-  <button onclick="addZuschnitt()">➕ Zuschnitt hinzufügen</button>
+  <button type="button" onclick="addZuschnitt()">➕ Zuschnitt hinzufügen</button>
 
   <div>
-    <button onclick="optimieren()">🔍 Optimieren</button>
+    <button type="button" onclick="optimieren()">🔍 Optimieren</button>
   </div>
 
   <div id="output"></div>
   <canvas id="canvas" width="800" height="600"></canvas>
 
   <script>
-    let zuschnittIndex = 0;
-
     function addZuschnitt() {
       const container = document.getElementById("zuschnittContainer");
       const div = document.createElement("div");
@@ -91,7 +89,7 @@
           rowHeight = 0;
         }
         if (y + cut.h > usableHeight) {
-          break; // kein Platz mehr
+          break;
         }
         output += `Zuschnitt ${i + 1}: ${cut.w}×${cut.h} → Position (${x + marginLeft}, ${y + marginTop})\n`;
         placements.push({ x: x + marginLeft, y: y + marginTop, w: cut.w, h: cut.h });
@@ -126,7 +124,9 @@
       });
     }
 
-    addZuschnitt();
+    window.onload = () => {
+      addZuschnitt();
+    }
   </script>
 </body>
 </html>
